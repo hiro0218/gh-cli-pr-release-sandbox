@@ -48,21 +48,15 @@ jobs:
         run: |          
           # 日付フォーマットを +%Y/%m/%d %H:%M に指定
           CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
-          
-          # マージされたPR一覧
-          impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-          no_impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
 
           # PRへの説明欄
           PR_DESCRIPTION=$(cat <<EOF
           
           ### 本番影響あり
-          <!-- 本番影響ありのPRリスト挿入 -->
-          $impact_list
+          $(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
 
           ### 本番影響なし
-          <!-- 本番影響なしのPRリスト挿入 -->
-          $no_impact_list
+          $(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
 
           EOF
           )
@@ -125,11 +119,9 @@ jobs:
           PR_DESCRIPTION=$(cat <<EOF
           
           ### 本番影響あり
-          <!-- 本番影響ありのPRリスト挿入 -->
           $impact_list
 
           ### 本番影響なし
-          <!-- 本番影響なしのPRリスト挿入 -->
           $no_impact_list
 
           EOF
