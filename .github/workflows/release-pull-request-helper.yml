@@ -62,6 +62,6 @@ jobs:
           EOF
           )
           
-          gh pr edit "$PR_EXISTS" --title "Release $(date)" --body "$PR_DESCRIPTION" # GitHub CLIを使ってPRの概要を更新する
+          gh pr edit "${{ env.PR_EXISTS }}" --title "Release $(date)" --body "$PR_DESCRIPTION" # GitHub CLIを使ってPRの概要を更新する
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
