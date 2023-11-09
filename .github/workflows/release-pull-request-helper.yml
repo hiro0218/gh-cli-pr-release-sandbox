@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1 # PRの存在チェックには最新のコミット情報のみあれば良い
 
       - name: Check if PR exists from develop to main
         id: check_pr
@@ -31,12 +31,12 @@ jobs:
           gh pr create --base main --head develop --title "Merge Develop into Main" --body "Merging the latest changes from develop into main."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false # このコマンドが失敗した場合は、ワークフローを停止する
 
       - name: Update PR description if PR exists
         if: env.PR_EXISTS != ''
         run: |
-          PR_BODY="Updated PR description at $(date)"
-          # GitHub CLIを使ってPRの概要を更新する
-          gh pr edit "$PR_EXISTS" --body "$PR_BODY"
+          PR_BODY="Updated PR description"
+          gh pr edit "$PR_EXISTS" --title "$(date)" --body "$PR_BODY" # GitHub CLIを使ってPRの概要を更新する
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
