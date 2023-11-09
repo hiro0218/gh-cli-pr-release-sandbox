@@ -28,13 +28,16 @@ jobs:
       - name: Create PR from develop to main if not exists
         if: env.PR_EXISTS == ''
         run: |
-          gh pr create --base main --head develop --title "Release $(date)"
+          gh pr create --base main --head develop
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: false # このコマンドが失敗した場合は、ワークフローを停止する
 
       - name: Update PR description
         run: |
-          gh pr edit "$PR_EXISTS" --title "$(date)" --body "Updated PR description" # GitHub CLIを使ってPRの概要を更新する
+          inpact_list="$(gh pr list --base feature/maintenance-20231114 --state merged --search "-1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')";
+          no_inpact_list="$(gh pr list --base feature/maintenance-20231114 --state merged --search "1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')";
+          
+          gh pr edit "$PR_EXISTS" --title "Release $(date)" --body "$(inpact_list)$(no_inpact_list)" # GitHub CLIを使ってPRの概要を更新する
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
