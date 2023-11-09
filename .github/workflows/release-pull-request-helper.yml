@@ -1,9 +1,13 @@
 name: git-pr-release
+
 on:
   push:
     branches:
       - develop
   workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   git-pr-release:
@@ -23,8 +27,6 @@ jobs:
         if: env.PR_EXISTS == ''
         run: |
           gh pr create --base main --head develop --title "Merge Develop into Main" --body "Merging the latest changes from develop into main."
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update PR description
         run: |
@@ -33,5 +35,3 @@ jobs:
 
           # GitHub CLIを使ってPRの概要を更新する
           gh pr edit "$PR_NUMBER" --body "$PR_BODY"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
