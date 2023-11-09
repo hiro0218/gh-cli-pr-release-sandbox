@@ -38,6 +38,6 @@ jobs:
           inpact_list="$(gh pr list --base feature/maintenance-20231114 --state merged --search "-1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')";
           no_inpact_list="$(gh pr list --base feature/maintenance-20231114 --state merged --search "1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')";
           
-          gh pr edit "$PR_EXISTS" --title "Release $(date)" --body "$(inpact_list)$(no_inpact_list)" # GitHub CLIを使ってPRの概要を更新する
+          gh pr edit "$PR_EXISTS" --title "Release $(date)" --body "$inpact_list $no_inpact_list" # GitHub CLIを使ってPRの概要を更新する
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
