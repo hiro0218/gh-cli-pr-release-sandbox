@@ -35,10 +35,18 @@ jobs:
       - name: Update PR description
         run: |
           PR_NUMBER=$(gh pr list --base main --head develop --json number -q ".[].number")
+          
+          # 日付フォーマットを +%Y/%m/%d %H:%M に指定
+          CURRENT_DATE=$(date "+%Y/%m/%d %H:%M")
+          
+          # マージされたPR一覧
+          inpact_list=$(gh pr list --base develop --state merged --search "-1 本番影響なし" --json url --template '{{range .}}- {{.url}}{{"\n"}}{{end}}')
+          no_inpact_list=$(gh pr list --base develop --state merged --search "1 本番影響なし" --json url --template '{{range .}}- {{.url}}{{"\n"}}{{end}}')
+          
+          echo $inpact_list
+          echo $no_inpact_list
 
-          inpact_list=$(gh pr list --base develop --state merged --search "-1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')
-          no_inpact_list=$(gh pr list --base develop --state merged --search "1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')
-
+          # PRへの説明欄
           PR_DESCRIPTION=$(cat <<EOF
           - [ ] pilot 反映済み
           
@@ -60,6 +68,6 @@ jobs:
           EOF
           )
           
-          gh pr edit "$PR_NUMBER" --title "Release $(date)" --body "$PR_DESCRIPTION" # GitHub CLIを使ってPRの概要を更新する
+          gh pr edit "$PR_NUMBER" --title "Release $CURRENT_DATE" --body "$PR_DESCRIPTION" # GitHub CLIを使ってPRの概要を更新する
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
