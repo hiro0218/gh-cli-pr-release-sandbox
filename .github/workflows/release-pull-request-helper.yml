@@ -114,24 +114,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create PR if not exists
-        if: env.PR_NUMBER == ''
-        run: |
-          PR_CREATE_OUTPUT=$(gh pr create --base $BASE_BRANCH --head $HEAD_BRANCH --title "Auto PR by git-pr-release" --body "Automatically generated PR.")
-          echo "$PR_CREATE_OUTPUT"
-          
-          # 新しいPRの番号を抽出して環境変数に設定
-          PR_NUMBER=$(echo "$PR_CREATE_OUTPUT" | grep -o 'https://github.com/.*/pull/[0-9]*' | grep -o '[0-9]*$')
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Update PR description
         if: env.PR_NUMBER != ''
-        run: |          
-          # 日付フォーマットを +%Y/%m/%d %H:%M に指定
-          CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
-          
+        run: |                    
           # マージされたPR一覧
           impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
           no_impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
