@@ -37,11 +37,11 @@ jobs:
           PR_NUMBER=$(gh pr list --base main --head develop --json number -q ".[].number")
           
           # 日付フォーマットを +%Y/%m/%d %H:%M に指定
-          CURRENT_DATE=$(date "+%Y/%m/%d %H:%M")
+          CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
           
           # マージされたPR一覧
-          inpact_list=$(gh pr list --base develop --state merged --search "-1 本番影響なし" --json url --template '{{range .}}- {{.url}}{{"\n"}}{{end}}')
-          no_inpact_list=$(gh pr list --base develop --state merged --search "1 本番影響なし" --json url --template '{{range .}}- {{.url}}{{"\n"}}{{end}}')
+          inpact_list=$(gh pr list --base develop --state merged --search '-label:"1 本番影響なし"' --json url --template '{{range .}}- {{.url}}{{"\n"}}{{end}}')
+          no_inpact_list=$(gh pr list --base develop --state merged --search 'label:"1 本番影響なし"' --json url --template '{{range .}}- {{.url}}{{"\n"}}{{end}}')
           
           echo $inpact_list
           echo $no_inpact_list
