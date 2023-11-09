@@ -20,21 +20,22 @@ jobs:
       - name: Check if PR exists from develop to main
         id: check_pr
         run: |
-          PR_EXISTS=$(gh pr list --base main --head develop --json number -q ".[].number")
-          echo "PR_EXISTS=$PR_EXISTS" >> $GITHUB_ENV
+          PR_NUMBER=$(gh pr list --base main --head develop --json number -q ".[].number")
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR from develop to main if not exists
-        if: env.PR_EXISTS == ''
+        if: env.PR_NUMBER == ''
         run: |
           gh pr create --base main --head develop
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: false # このコマンドが失敗した場合は、ワークフローを停止する
 
       - name: Update PR description
         run: |
+          PR_NUMBER=$(gh pr list --base main --head develop --json number -q ".[].number")
+
           inpact_list="$(gh pr list --base develop --state merged --search "-1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')";
           no_inpact_list="$(gh pr list --base develop --state merged --search "1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')";
 
@@ -62,6 +63,6 @@ jobs:
           EOF
           )
           
-          gh pr edit "${{ env.PR_EXISTS }}" --title "Release $(date)" --body "$PR_DESCRIPTION" # GitHub CLIを使ってPRの概要を更新する
+          gh pr edit "$PR_NUMBER" --title "Release $(date)" --body "$PR_DESCRIPTION" # GitHub CLIを使ってPRの概要を更新する
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
