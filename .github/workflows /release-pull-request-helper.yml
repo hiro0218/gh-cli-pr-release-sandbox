@@ -1,0 +1,37 @@
+name: git-pr-release
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  git-pr-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if PR exists from develop to main
+        id: check_pr
+        run: |
+          PR_EXISTS=$(gh pr list --base main --head develop --json number -q ".[].number")
+          echo "PR_EXISTS=$PR_EXISTS" >> $GITHUB_ENV
+
+      - name: Create PR from develop to main if not exists
+        if: env.PR_EXISTS == ''
+        run: |
+          gh pr create --base main --head develop --title "Merge Develop into Main" --body "Merging the latest changes from develop into main."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update PR description
+        run: |
+          PR_NUMBER=$(echo ${{ github.event.pull_request.number }})
+          PR_BODY="Updated PR description at $(date)"
+
+          # GitHub CLIを使ってPRの概要を更新する
+          gh pr edit "$PR_NUMBER" --body "$PR_BODY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
