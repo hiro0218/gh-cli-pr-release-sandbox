@@ -39,25 +39,22 @@ jobs:
           inpact_list=$(gh pr list --base develop --state merged --search "-1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')
           no_inpact_list=$(gh pr list --base develop --state merged --search "1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')
 
-          PR_DESCRIPTION=$(cat <<'EOF'
+          PR_DESCRIPTION=$(cat <<EOF
           - [ ] pilot 反映済み
           
           ---
           
           ## 銘柄
-          
           > [!WARNING]
           >
           > 本番影響がないこと, dev*・pilot環境で問題ないことを確認済みで release しても問題ない場合は check を入れてください。
           > 
-          > [リリース体制について](https://zozo.rickcloud.jp/wiki/pages/viewpage.action?pageId=346445078#:~:text=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E4%BD%93%E5%88%B6)
+          > [リリース体制について](https://zozo.rickcloud.jp/wiki/x/FlWmF#:~:text=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E4%BD%93%E5%88%B6)
 
           ### 本番影響あり
-          
           $inpact_list
 
           ### 本番影響なし
-          
           $no_inpact_list
           
           EOF
