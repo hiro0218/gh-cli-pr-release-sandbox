@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - feature/maintenance-**
   workflow_dispatch:
 
 jobs:
@@ -17,10 +18,21 @@ jobs:
         with:
           fetch-depth: 1 # PRの存在チェックには最新のコミット情報のみあれば良い
 
-      - name: Check if PR exists from develop to main
+      - name: Determine base branch for PR
+        id: base_branch
+        run: |
+          if [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
+            echo "BASE_BRANCH=main" >> $GITHUB_ENV
+            echo "HEAD_BRANCH=develop" >> $GITHUB_ENV
+          else
+            echo "BASE_BRANCH=develop" >> $GITHUB_ENV
+            echo "HEAD_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          fi
+
+      - name: Check if PR exists
         id: check_pr
         run: |
-          PR_NUMBER=$(gh pr list --base main --head develop --json number -q ".[].number")
+          PR_NUMBER=$(gh pr list --base ${{ env.BASE_BRANCH }} --head ${{ env.HEAD_BRANCH }} --json number -q ".[].number")
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -28,20 +40,18 @@ jobs:
       - name: Create PR from develop to main if not exists
         if: env.PR_NUMBER == ''
         run: |
-          gh pr create --base main --head develop
+          gh pr create --base ${{ env.BASE_BRANCH }} --head ${{ env.HEAD_BRANCH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update PR description
-        run: |
-          PR_NUMBER=$(gh pr list --base main --head develop --json number -q ".[].number")
-          
+        run: |          
           # 日付フォーマットを +%Y/%m/%d %H:%M に指定
           CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
           
           # マージされたPR一覧
-          inpact_list=$(gh pr list --base develop --state merged --search '-label:"1 本番影響なし"' --json url --template '{{range .}}- [ ] {{.url}}{{"\n"}}{{end}}')
-          no_inpact_list=$(gh pr list --base develop --state merged --search 'label:"1 本番影響なし"' --json url --template '{{range .}}- [ ] {{.url}}{{"\n"}}{{end}}')
+          inpact_list=$(gh pr list --base develop --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
+          no_inpact_list=$(gh pr list --base develop --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
           
           echo $inpact_list
           echo $no_inpact_list
