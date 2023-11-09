@@ -40,7 +40,7 @@ jobs:
       - name: Create PR if not exists
         if: env.PR_NUMBER == ''
         run: |
-          PR_CREATE_OUTPUT=$(gh pr create --base $BASE_BRANCH --head $HEAD_BRANCH --title "Auto PR" --body "Automatically generated PR.")
+          PR_CREATE_OUTPUT=$(gh pr create --base $BASE_BRANCH --head $HEAD_BRANCH --title "Auto PR by git-pr-release" --body "Automatically generated PR.")
           echo "$PR_CREATE_OUTPUT"
           
           # 新しいPRの番号を抽出して環境変数に設定
