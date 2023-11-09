@@ -36,8 +36,8 @@ jobs:
         run: |
           PR_NUMBER=$(gh pr list --base main --head develop --json number -q ".[].number")
 
-          inpact_list="$(gh pr list --base develop --state merged --search "-1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')";
-          no_inpact_list="$(gh pr list --base develop --state merged --search "1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')";
+          inpact_list=$(gh pr list --base develop --state merged --search "-1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')
+          no_inpact_list=$(gh pr list --base develop --state merged --search "1 本番影響なし" --json url --template '{{range .}}{{.url}}{{"\n"}}{{end}}')
 
           PR_DESCRIPTION=$(cat <<'EOF'
           - [ ] pilot 反映済み
