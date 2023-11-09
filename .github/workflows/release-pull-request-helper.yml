@@ -128,10 +128,7 @@ jobs:
 
       - name: Update PR description
         if: env.PR_NUMBER != ''
-        run: |          
-          # 日付フォーマットを +%Y/%m/%d %H:%M に指定
-          CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
-          
+        run: |                    
           # マージされたPR一覧
           impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
           no_impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
