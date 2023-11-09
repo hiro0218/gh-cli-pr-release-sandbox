@@ -64,6 +64,7 @@ jobs:
 
           # PRへの説明欄
           PR_DESCRIPTION=$(cat <<EOF
+          
           ### 本番影響あり
           <!-- 本番影響ありのPRリスト挿入 -->
           $impact_list
