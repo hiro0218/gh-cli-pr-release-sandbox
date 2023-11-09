@@ -53,11 +53,11 @@ jobs:
 
           ### 本番影響あり
           
-          ($inpact_list)
+          $inpact_list
 
           ### 本番影響なし
           
-          ($no_inpact_list)
+          $no_inpact_list
           
           EOF
           )
