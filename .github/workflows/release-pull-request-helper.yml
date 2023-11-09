@@ -6,9 +6,6 @@ on:
       - develop
   workflow_dispatch:
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   git-pr-release:
     runs-on: ubuntu-latest
@@ -22,16 +19,21 @@ jobs:
         run: |
           PR_EXISTS=$(gh pr list --base main --head develop --json number -q ".[].number")
           echo "PR_EXISTS=$PR_EXISTS" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR from develop to main if not exists
         if: env.PR_EXISTS == ''
         run: |
           gh pr create --base main --head develop --title "Merge Develop into Main" --body "Merging the latest changes from develop into main."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update PR description
+      - name: Update PR description if PR exists
+        if: env.PR_EXISTS != ''
         run: |
-          PR_NUMBER=$(echo ${{ github.event.pull_request.number }})
           PR_BODY="Updated PR description at $(date)"
-
           # GitHub CLIを使ってPRの概要を更新する
-          gh pr edit "$PR_NUMBER" --body "$PR_BODY"
+          gh pr edit "$PR_EXISTS" --body "$PR_BODY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
