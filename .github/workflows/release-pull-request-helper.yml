@@ -110,19 +110,15 @@ jobs:
 
       - name: Update PR description
         if: env.PR_NUMBER != ''
-        run: |                    
-          # マージされたPR一覧
-          impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-          no_impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-
+        run: |
           # PRへの説明欄
           PR_DESCRIPTION=$(cat <<EOF
           
           ### 本番影響あり
-          $impact_list
+          $(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
 
           ### 本番影響なし
-          $no_impact_list
+          $(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
 
           EOF
           )
