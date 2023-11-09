@@ -7,6 +7,10 @@ on:
       - 'feature/maintenance-**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   develop-to-main:
     if: github.ref == 'refs/heads/develop'
@@ -44,20 +48,8 @@ jobs:
 
       - name: Update PR description
         if: env.PR_NUMBER != ''
-        run: |          
-          PR_DESCRIPTION=$(cat <<EOF
-          
-          ### 本番影響あり
-          $(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-
-          ### 本番影響なし
-          $(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-
-          EOF
-          )
-
-          # GitHub CLIを使ってPRの概要を更新する
-          ADDITIONAL_CONTENT=$(cat <<'EOF'
+        run: |
+          ADDITIONAL_CONTENT=$(cat <<EOF
 
           - [ ] pilot 反映済み
           
@@ -70,13 +62,17 @@ jobs:
           > 
           > [リリース体制について](https://zozo.rickcloud.jp/wiki/x/FlWmF#:~:text=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E4%BD%93%E5%88%B6)
 
+          ### 本番影響あり
+          $(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
+
+          ### 本番影響なし
+          $(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
+
           EOF
           )
 
           CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
-          FULL_PR_DESCRIPTION="${ADDITIONAL_CONTENT}${PR_DESCRIPTION}"
-          gh pr edit "$PR_NUMBER" --title "Release $CURRENT_DATE" --body "$FULL_PR_DESCRIPTION"
-          
+          gh pr edit "$PR_NUMBER" --title "Release $CURRENT_DATE" --body "$PR_DESCRIPTION"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -118,8 +114,6 @@ jobs:
           EOF
           )
 
-          # GitHub CLIを使ってPRの概要を更新する
           gh pr edit "$PR_NUMBER" --body "$PR_DESCRIPTION"
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
