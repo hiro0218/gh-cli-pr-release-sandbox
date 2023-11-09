@@ -56,8 +56,8 @@ jobs:
           CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
           
           # マージされたPR一覧
-          inpact_list=$(gh pr list --base develop --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-          no_inpact_list=$(gh pr list --base develop --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
+          inpact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
+          no_inpact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
           
           echo $inpact_list
           echo $no_inpact_list
