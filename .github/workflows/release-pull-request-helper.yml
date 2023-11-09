@@ -56,27 +56,28 @@ jobs:
           CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
           
           # マージされたPR一覧
-          inpact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-          no_inpact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
+          impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
+          no_impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
           
           echo $inpact_list
           echo $no_inpact_list
 
           # PRへの説明欄
           PR_DESCRIPTION=$(cat <<EOF
+          
           ### 本番影響あり
           <!-- 本番影響ありのPRリスト挿入 -->
-          $inpact_list
+          $impact_list
 
           ### 本番影響なし
           <!-- 本番影響なしのPRリスト挿入 -->
-          $no_inpact_list
-          
+          $no_impact_list
+
           EOF
           )
 
           # GitHub CLIを使ってPRの概要を更新する
-          if [[ $HEAD_BRANCH == 'develop' ]]; then
+          if [[ "${{ github.ref }}" == 'refs/heads/develop' ]]; then
             ADDITIONAL_CONTENT=$(cat <<'EOF'
 
             - [ ] pilot 反映済み
@@ -90,8 +91,8 @@ jobs:
             > 
             > [リリース体制について](https://zozo.rickcloud.jp/wiki/x/FlWmF#:~:text=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E4%BD%93%E5%88%B6)
 
-            EOF
-            )
+          EOF
+          )
             
             FULL_PR_DESCRIPTION="${ADDITIONAL_CONTENT}${PR_DESCRIPTION}"
             gh pr edit "$PR_NUMBER" --title "Release $CURRENT_DATE" --body "$FULL_PR_DESCRIPTION"
