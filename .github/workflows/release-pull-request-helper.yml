@@ -77,7 +77,8 @@ jobs:
 
           # GitHub CLIを使ってPRの概要を更新する
           if [[ $HEAD_BRANCH == 'develop' ]]; then
-            ADDITIONAL_CONTENT=$(cat <<EOF
+            ADDITIONAL_CONTENT=$(cat <<'EOF'
+
             - [ ] pilot 反映済み
             
             ---
@@ -88,10 +89,10 @@ jobs:
             > 本番影響がないこと, dev*・pilot環境で問題ないことを確認済みで release しても問題ない場合は check を入れてください。
             > 
             > [リリース体制について](https://zozo.rickcloud.jp/wiki/x/FlWmF#:~:text=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E4%BD%93%E5%88%B6)
+
             EOF
             )
             
-            # PR_DESCRIPTIONにADDITIONAL_CONTENTを追加する
             FULL_PR_DESCRIPTION="${ADDITIONAL_CONTENT}${PR_DESCRIPTION}"
             gh pr edit "$PR_NUMBER" --title "Release $CURRENT_DATE" --body "$FULL_PR_DESCRIPTION"
           else
