@@ -45,10 +45,6 @@ jobs:
       - name: Update PR description
         if: env.PR_NUMBER != ''
         run: |          
-          # 日付フォーマットを +%Y/%m/%d %H:%M に指定
-          CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
-
-          # PRへの説明欄
           PR_DESCRIPTION=$(cat <<EOF
           
           ### 本番影響あり
@@ -76,7 +72,8 @@ jobs:
 
           EOF
           )
-          
+
+          CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
           FULL_PR_DESCRIPTION="${ADDITIONAL_CONTENT}${PR_DESCRIPTION}"
           gh pr edit "$PR_NUMBER" --title "Release $CURRENT_DATE" --body "$FULL_PR_DESCRIPTION"
           
@@ -110,7 +107,6 @@ jobs:
       - name: Update PR description
         if: env.PR_NUMBER != ''
         run: |
-          # PRへの説明欄
           PR_DESCRIPTION=$(cat <<EOF
           
           ### 本番影響あり
