@@ -81,6 +81,8 @@ jobs:
               unmerged_no_impact_prs+="- #$unmerged_pr\n"
             fi
           done
+
+          echo $unmerged_no_impact_prs
           
           PR_DESCRIPTION=$(cat <<EOF
 
