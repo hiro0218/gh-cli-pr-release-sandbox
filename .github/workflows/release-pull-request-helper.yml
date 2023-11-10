@@ -50,7 +50,7 @@ jobs:
       - name: Update PR description
         if: env.PR_NUMBER != ''
         run: |
-          ADDITIONAL_CONTENT=$(cat <<EOF
+          PR_DESCRIPTION=$(cat <<EOF
 
           - [ ] pilot 反映済み
           
