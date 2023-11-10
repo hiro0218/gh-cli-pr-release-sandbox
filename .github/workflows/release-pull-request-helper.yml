@@ -50,7 +50,7 @@ jobs:
       - name: Update PR description
         if: env.PR_NUMBER != ''
         run: |
-          # git fetch origin
+          git fetch origin
 
           # PRがmainブランチにマージされているかチェックする関数
           check_pr_merged_to_main() {
