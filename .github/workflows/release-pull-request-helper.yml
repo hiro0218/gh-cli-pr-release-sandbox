@@ -57,7 +57,7 @@ jobs:
             local pr_number=$1
             local is_merged=$(git log origin/main --grep "Merge pull request #$pr_number" --oneline)
             if [[ -z "$is_merged" ]]; then
-              echo "$pr_number"
+              echo "#$pr_number"
             fi
           }
           
