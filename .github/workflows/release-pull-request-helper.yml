@@ -81,10 +81,10 @@ jobs:
           > [リリース体制について](https://zozo.rickcloud.jp/wiki/x/FlWmF#:~:text=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E4%BD%93%E5%88%B6)
 
           ### 本番影響あり
-          $(for pr in $impact_prs; do check_pr_merged_to_main "$pr"; done)
+          $(for pr in $impact_prs; do check_pr_merged_to_main "- $pr"; done)
           
           ### 本番影響なし
-          $(for pr in $no_impact_prs; do check_pr_merged_to_main "$pr"; done)
+          $(for pr in $no_impact_prs; do check_pr_merged_to_main "- $pr"; done)
 
           EOF
           )
