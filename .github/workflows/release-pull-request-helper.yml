@@ -69,7 +69,7 @@ jobs:
           for pr in $impact_prs; do
             unmerged_pr=$(check_pr_merged_to_main "$pr")
             if [[ -n "$unmerged_pr" ]]; then
-              unmerged_impact_prs+="#$unmerged_pr\n"
+              unmerged_impact_prs+="- #$unmerged_pr\n"
             fi
           done
           
@@ -78,7 +78,7 @@ jobs:
           for pr in $no_impact_prs; do
             unmerged_pr=$(check_pr_merged_to_main "$pr")
             if [[ -n "$unmerged_pr" ]]; then
-              unmerged_no_impact_prs+="#$unmerged_pr\n"
+              unmerged_no_impact_prs+="- #$unmerged_pr\n"
             fi
           done
           
