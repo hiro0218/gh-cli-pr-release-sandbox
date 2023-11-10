@@ -7,8 +7,12 @@ on:
       - 'feature/maintenance-**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  release-to-main:
+  develop-to-main:
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     permissions:
@@ -36,7 +40,7 @@ jobs:
         run: |
           PR_CREATE_OUTPUT=$(gh pr create --base $BASE_BRANCH --head $HEAD_BRANCH --title "Auto PR by git-pr-release" --body "Automatically generated PR.")
           echo "$PR_CREATE_OUTPUT"
-          
+
           # 新しいPRの番号を抽出して環境変数に設定
           PR_NUMBER=$(echo "$PR_CREATE_OUTPUT" | grep -o 'https://github.com/.*/pull/[0-9]*' | grep -o '[0-9]*$')
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
@@ -45,24 +49,25 @@ jobs:
 
       - name: Update PR description
         if: env.PR_NUMBER != ''
-        run: |          
-          # 日付フォーマットを +%Y/%m/%d %H:%M に指定
-          CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
+        run: |
+          # git fetch origin
 
-          # PRへの説明欄
-          PR_DESCRIPTION=$(cat <<EOF
+          # PRがmainブランチにマージされているかチェックする関数
+          check_pr_merged_to_main() {
+            local pr_number=$1
+            local is_merged=$(git log origin/main --grep "Merge pull request #$pr_number" --oneline)
+            if [[ -z "$is_merged" ]]; then
+              echo "- #$pr_number"
+            fi
+          }
           
-          ### 本番影響あり
-          $(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-
-          ### 本番影響なし
-          $(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-
-          EOF
-          )
-
-          # GitHub CLIを使ってPRの概要を更新する
-          ADDITIONAL_CONTENT=$(cat <<'EOF'
+          # 本番影響ありのPRをチェック
+          impact_prs=$(gh pr list --base develop --state merged --search '-label:"1 本番影響なし"' --json number --template '{{range .}}{{.number}}{{"\n"}}{{end}}')
+          
+          # 本番影響なしのPRをチェック
+          no_impact_prs=$(gh pr list --base develop --state merged --search 'label:"1 本番影響なし"' --json number --template '{{range .}}{{.number}}{{"\n"}}{{end}}')
+          
+          PR_DESCRIPTION=$(cat <<EOF
 
           - [ ] pilot 反映済み
           
@@ -75,16 +80,21 @@ jobs:
           > 
           > [リリース体制について](https://zozo.rickcloud.jp/wiki/x/FlWmF#:~:text=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E4%BD%93%E5%88%B6)
 
+          ### 本番影響あり
+          $(for pr in $impact_prs; do check_pr_merged_to_main "$pr"; done)
+          
+          ### 本番影響なし
+          $(for pr in $no_impact_prs; do check_pr_merged_to_main "$pr"; done)
+
           EOF
           )
-          
-          FULL_PR_DESCRIPTION="${ADDITIONAL_CONTENT}${PR_DESCRIPTION}"
-          gh pr edit "$PR_NUMBER" --title "Release $CURRENT_DATE" --body "$FULL_PR_DESCRIPTION"
-          
+
+          CURRENT_DATE=$(TZ='Asia/Tokyo' date "+%Y/%m/%d %H:%M")
+          gh pr edit "$PR_NUMBER" --title "Release $CURRENT_DATE" --body "$PR_DESCRIPTION"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  maintenance-job:
+  maintenance-to-develop:
     if: startsWith(github.ref, 'refs/heads/feature/maintenance-')
     runs-on: ubuntu-latest
     permissions:
@@ -110,25 +120,18 @@ jobs:
 
       - name: Update PR description
         if: env.PR_NUMBER != ''
-        run: |                    
-          # マージされたPR一覧
-          impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-          no_impact_list=$(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
-
-          # PRへの説明欄
+        run: |
           PR_DESCRIPTION=$(cat <<EOF
           
           ### 本番影響あり
-          $impact_list
+          $(gh pr list --base $HEAD_BRANCH --state merged --search '-label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
 
           ### 本番影響なし
-          $no_impact_list
+          $(gh pr list --base $HEAD_BRANCH --state merged --search 'label:"1 本番影響なし"' --json url,author --template '{{range .}}- [ ] {{.url}} @{{.author.login}}{{"\n"}}{{end}}')
 
           EOF
           )
 
-          # GitHub CLIを使ってPRの概要を更新する
           gh pr edit "$PR_NUMBER" --body "$PR_DESCRIPTION"
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
