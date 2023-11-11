@@ -55,7 +55,7 @@ jobs:
           # PRがmainブランチにマージされているかチェックする関数
           check_pr_merged_to_main() {
             local pr_number=$1
-            local is_merged=$(git log origin/main --grep "Merge pull request #$pr_number" --oneline)
+            local is_merged=$(git log origin/main --grep "Merge pull request #$pr_number" --oneline --merges)
             if [[ -z "$is_merged" ]]; then
               echo "- #$pr_number"
             fi
