@@ -62,10 +62,10 @@ jobs:
             fi
           }
           
-          # 本番影響ありのPRを取得（authorも含めて）
+          # 本番影響ありのPRを取得
           impact_prs=$(gh pr list --base develop --state merged --search '-label:"1 本番影響なし"' --json number,author --jq '.[] | "\(.number) \(.author.login)"')
           
-          # 本番影響なしのPRを取得（authorも含めて）
+          # 本番影響なしのPRを取得
           no_impact_prs=$(gh pr list --base develop --state merged --search 'label:"1 本番影響なし"' --json number,author --jq '.[] | "\(.number) \(.author.login)"')
           
           PR_DESCRIPTION=$(cat <<EOF
