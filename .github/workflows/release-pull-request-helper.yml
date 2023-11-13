@@ -51,21 +51,22 @@ jobs:
         if: env.PR_NUMBER != ''
         run: |
           git fetch origin
-
+          
           # PRがmainブランチにマージされているかチェックする関数
           check_pr_merged_to_main() {
             local pr_number=$1
+            local pr_author=$2
             local is_merged=$(git log origin/main --grep "Merge pull request #$pr_number" --oneline --merges)
             if [[ -z "$is_merged" ]]; then
-              echo "- #$pr_number"
+              echo "#$pr_number @$pr_author"
             fi
           }
           
-          # 本番影響ありのPRをチェック
-          impact_prs=$(gh pr list --base develop --state merged --search '-label:"1 本番影響なし"' --json number --template '{{range .}}{{.number}}{{"\n"}}{{end}}')
+          # 本番影響ありのPRを取得（authorも含めて）
+          impact_prs=$(gh pr list --base develop --state merged --search '-label:"1 本番影響なし"' --json number,author --jq '.[] | "\(.number) \(.author.login)"')
           
-          # 本番影響なしのPRをチェック
-          no_impact_prs=$(gh pr list --base develop --state merged --search 'label:"1 本番影響なし"' --json number --template '{{range .}}{{.number}}{{"\n"}}{{end}}')
+          # 本番影響なしのPRを取得（authorも含めて）
+          no_impact_prs=$(gh pr list --base develop --state merged --search 'label:"1 本番影響なし"' --json number,author --jq '.[] | "\(.number) \(.author.login)"')
           
           PR_DESCRIPTION=$(cat <<EOF
 
@@ -81,10 +82,10 @@ jobs:
           > [リリース体制について](https://zozo.rickcloud.jp/wiki/x/FlWmF#:~:text=%E3%83%AA%E3%83%AA%E3%83%BC%E3%82%B9%E4%BD%93%E5%88%B6)
 
           ### 本番影響あり
-          $(for pr in $impact_prs; do check_pr_merged_to_main "$pr"; done)
+          $(echo "$impact_prs" | while read -r pr author; do check_pr_merged_to_main "$pr" "$author"; done)
           
           ### 本番影響なし
-          $(for pr in $no_impact_prs; do check_pr_merged_to_main "$pr"; done)
+          $(echo "$no_impact_prs" | while read -r pr author; do check_pr_merged_to_main "$pr" "$author"; done)
 
           EOF
           )
